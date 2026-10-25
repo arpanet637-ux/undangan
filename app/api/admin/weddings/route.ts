@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { weddings, couple, guests, wishes } from '@/lib/db/schema'
+import { weddings, couple, guests, wishes } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import { headers } from 'next/headers'
 import { generateUniqueWeddingSlug } from '@/lib/admin-utils'

@@ -1,4 +1,4 @@
-import { put } from '@vercel/blob'
+import { putFile } from '@/lib/storage'
 import { type NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest) {
@@ -25,11 +25,8 @@ export async function POST(request: NextRequest) {
     const ext = '.mp3'
     const filename = `audio-${timestamp}${ext}`
 
-    // Private Blob store: served through the /api/file proxy with the token.
-    const blob = await put(filename, file, {
-      access: 'private',
-      addRandomSuffix: true,
-    })
+    // Stored in Netlify Blobs and served through the /api/file proxy.
+    const blob = await putFile(filename, file)
 
     return NextResponse.json({ 
       url: blob.url,

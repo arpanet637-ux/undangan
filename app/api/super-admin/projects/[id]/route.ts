@@ -10,7 +10,7 @@ import {
   guests,
   wishes,
   gifts,
-} from '@/lib/db/schema'
+} from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import { headers } from 'next/headers'
 

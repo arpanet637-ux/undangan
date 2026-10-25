@@ -1,4 +1,4 @@
-import { put } from '@vercel/blob'
+import { putFile } from '@/lib/storage'
 import { type NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest) {
@@ -24,13 +24,9 @@ export async function POST(request: NextRequest) {
     const timestamp = Date.now()
     const filename = `${timestamp}-${file.name}`
 
-    // This project uses a PRIVATE Blob store. Photos are served through the
-    // /api/file proxy which streams the content server-side with the token,
+    // Photos are stored in Netlify Blobs and served through the /api/file proxy,
     // so the stored /api/file?pathname=... URL stays valid permanently.
-    const blob = await put(filename, file, {
-      access: 'private',
-      addRandomSuffix: true,
-    })
+    const blob = await putFile(filename, file)
 
     return NextResponse.json({ url: blob.url, pathname: blob.pathname })
   } catch (error) {

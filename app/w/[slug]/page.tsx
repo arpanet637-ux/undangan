@@ -3,7 +3,7 @@ import { headers } from 'next/headers'
 import { and, eq, ilike } from 'drizzle-orm'
 import { InvitationClient } from '@/components/invitation/invitation-client'
 import { db } from '@/lib/db'
-import { couple, events, guests, weddings } from '@/lib/db/schema'
+import { couple, events, guests, weddings } from '@/db/schema'
 
 const SITE_ORIGIN = (
   process.env.NEXT_PUBLIC_APP_URL ||

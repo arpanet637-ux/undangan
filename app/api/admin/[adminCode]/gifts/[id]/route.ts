@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { gifts } from '@/lib/db/schema'
+import { gifts } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ adminCode: string; id: string }> }) {

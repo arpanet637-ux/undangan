@@ -170,6 +170,7 @@ export function AdminCouple({ adminCode }: { adminCode: string }) {
   const [saved, setSaved] = useState<number | null>(null)
   const [successMsg, setSuccessMsg] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const [loadError, setLoadError] = useState<string | null>(null)
   const [template, setTemplate] = useState('template-a')
 
   useEffect(() => {
@@ -232,7 +233,7 @@ export function AdminCouple({ adminCode }: { adminCode: string }) {
       })
       .catch(err => {
         console.error('[v0] Fetch error:', err)
-        setError(err.message)
+        setLoadError(err.message)
         setLoading(false)
       })
   }, [adminCode])
@@ -280,11 +281,11 @@ export function AdminCouple({ adminCode }: { adminCode: string }) {
 
   if (template === 'template-c') return <MetatahParticipantForm adminCode={adminCode} />
 
-  if (error) return (
+  if (loadError) return (
     <div className="p-6 md:p-8 max-w-4xl">
       <h1 className="text-xl font-display text-white mb-6">Kelola Mempelai</h1>
       <div className="bg-red-500/20 border border-red-500 p-4 rounded text-red-200 font-body text-sm">
-        Error loading data: {error}
+        Error loading data: {loadError}
       </div>
     </div>
   )

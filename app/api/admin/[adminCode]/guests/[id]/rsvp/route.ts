@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { guests } from '@/lib/db/schema'
+import { guests } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ adminCode: string; id: string }> }) {

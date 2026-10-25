@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { weddings, couple, events, gallery, gifts, wishes, settings } from '@/lib/db/schema'
+import { weddings, couple, events, gallery, gifts, wishes, settings } from '@/db/schema'
 import { eq, desc } from 'drizzle-orm'
 
 function slugDistance(left: string, right: string): number {

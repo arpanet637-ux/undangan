@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { weddings, events } from '@/lib/db/schema'
+import { weddings, events } from '@/db/schema'
 import { eq } from 'drizzle-orm'
 
 async function getWeddingByCode(adminCode: string) {

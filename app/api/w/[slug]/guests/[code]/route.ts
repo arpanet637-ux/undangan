@@ -1,12 +1,13 @@
 import { NextResponse, NextRequest } from 'next/server'
-import { pool } from '@/lib/db'
+import { getPool } from '@/lib/db'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { slug: string; code: string } }
+  { params }: { params: Promise<{ slug: string; code: string }> }
 ) {
   try {
-    const { slug, code } = params
+    const { slug, code } = await params
+    const pool = await getPool()
 
     // Get wedding ID from slug
     const weddingResult = await pool.query(

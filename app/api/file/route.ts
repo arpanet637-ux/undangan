@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server'
-import { get } from '@vercel/blob'
+import { getFile } from '@/lib/storage'
 
 export async function GET(request: NextRequest) {
   try {
@@ -9,30 +9,27 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Missing pathname' }, { status: 400 })
     }
 
-    const result = await get(pathname, {
-      access: 'private',
-      ifNoneMatch: request.headers.get('if-none-match') ?? undefined,
-    })
+    const result = await getFile(pathname)
 
     if (!result) {
       return new NextResponse('Not found', { status: 404 })
     }
 
     // Blob hasn't changed — tell the browser to use its cached copy
-    if (result.statusCode === 304) {
+    if (result.etag && request.headers.get('if-none-match') === result.etag) {
       return new NextResponse(null, {
         status: 304,
         headers: {
-          ETag: result.blob.etag,
+          ETag: result.etag,
           'Cache-Control': 'private, max-age=31536000',
         },
       })
     }
 
-    return new NextResponse(result.stream, {
+    return new NextResponse(result.stream as ReadableStream, {
       headers: {
-        'Content-Type': result.blob.contentType,
-        ETag: result.blob.etag,
+        'Content-Type': result.contentType,
+        ...(result.etag ? { ETag: result.etag } : {}),
         'Cache-Control': 'private, max-age=31536000',
       },
     })

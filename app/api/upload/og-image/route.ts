@@ -1,4 +1,4 @@
-import { put } from '@vercel/blob'
+import { putFile } from '@/lib/storage'
 import { NextResponse } from 'next/server'
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp']
@@ -24,16 +24,10 @@ export async function POST(request: Request) {
     }
 
     const filename = `og-thumbnails/${Date.now()}-${file.name}`
-    // This project's Blob store only supports 'private' access (same as every other
-    // upload route here). The raw blob.url requires an auth token and can't be loaded
-    // directly by <img> or by WhatsApp/Facebook crawlers, so — matching the same
-    // convention used by /api/upload/image — we store the /api/file?pathname=...
-    // proxy path instead. The admin preview <img> can load that path directly, and
-    // /api/og-image/[slug] extracts the pathname from it to stream the blob server-side.
-    const blob = await put(filename, file, {
-      access: 'private',
-      addRandomSuffix: true,
-    })
+    // Stored in Netlify Blobs. We save the /api/file?pathname=... proxy path — the
+    // admin preview <img> can load it directly, and /api/og-image/[slug] extracts the
+    // pathname from it to stream the blob server-side.
+    const blob = await putFile(filename, file)
 
     return NextResponse.json({ url: `/api/file?pathname=${encodeURIComponent(blob.pathname)}` })
   } catch (error) {

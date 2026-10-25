@@ -1,5 +1,8 @@
 import { betterAuth } from 'better-auth'
-import { pool } from '@/lib/db'
+import { createHash } from 'node:crypto'
+import { PostgresDialect } from 'kysely'
+import { getConnectionString } from '@netlify/database'
+import { getPool } from '@/lib/db'
 
 const getTrustedOrigins = () => {
   const origins: string[] = []
@@ -41,6 +44,11 @@ const getTrustedOrigins = () => {
     }
   }
   
+  // Netlify site and deploy URLs
+  for (const url of [process.env.URL, process.env.DEPLOY_PRIME_URL, process.env.DEPLOY_URL]) {
+    if (url) origins.push(url)
+  }
+
   // Explicit BETTER_AUTH_URL if set
   if (process.env.BETTER_AUTH_URL) {
     origins.push(process.env.BETTER_AUTH_URL)
@@ -54,14 +62,31 @@ const getTrustedOrigins = () => {
 
 const baseURL =
   process.env.BETTER_AUTH_URL ??
+  process.env.URL ??
   (process.env.VERCEL_PROJECT_PRODUCTION_URL
     ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
     : process.env.VERCEL_URL
       ? `https://${process.env.VERCEL_URL}`
       : process.env.V0_RUNTIME_URL ?? 'http://localhost:3000')
 
-export const auth = betterAuth({
-  database: pool,
+// Prefer an explicit BETTER_AUTH_SECRET. Otherwise derive a stable, server-only
+// secret from the Netlify Database credentials so production never runs without one.
+const getSecret = () => {
+  if (process.env.BETTER_AUTH_SECRET) return process.env.BETTER_AUTH_SECRET
+  try {
+    return createHash('sha256').update(`better-auth:${getConnectionString()}`).digest('hex')
+  } catch {
+    // No database connection available (e.g. during the build)
+    return undefined
+  }
+}
+
+const createAuth = () => betterAuth({
+  secret: getSecret(),
+  database: {
+    dialect: new PostgresDialect({ pool: getPool }),
+    type: 'postgres',
+  },
   baseURL,
   emailAndPassword: {
     enabled: true,
@@ -91,4 +116,18 @@ export const auth = betterAuth({
     // Keep CSRF check enabled for security
     skipCsrfCheck: process.env.NODE_ENV !== 'production',
   },
-}) 
+})
+
+// Created on first use so the database connection and secret are resolved at
+// request time rather than when the module is imported during the build.
+type Auth = ReturnType<typeof createAuth>
+let _auth: Auth | undefined
+const getAuth = (): Auth => (_auth ??= createAuth())
+
+export const auth = new Proxy({} as Auth, {
+  get(_target, prop) {
+    const instance = getAuth()
+    const value = Reflect.get(instance, prop)
+    return typeof value === 'function' ? value.bind(instance) : value
+  },
+})
