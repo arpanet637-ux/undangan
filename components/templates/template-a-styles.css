@@ -1,0 +1,82 @@
+/* Template A Isolated Scope - NO !important, CSS variables scoped within .template-a-scope */
+
+.template-a-scope {
+  /* Color system for Template A */
+  --charcoal: 21 13% 13%;
+  --cream: 35 27% 94%;
+  --sage: 160 38% 51%;
+  --white: 0 0% 100%;
+  
+  font-family: 'Inter', system-ui, sans-serif;
+  color: hsl(var(--charcoal));
+}
+
+.template-a-scope * {
+  box-sizing: border-box;
+}
+
+/* Typography utilities */
+.template-a-scope .font-display {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+}
+
+.template-a-scope .font-body {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-weight: 400;
+}
+
+/* Colors */
+.template-a-scope .text-charcoal {
+  color: hsl(var(--charcoal));
+}
+
+.template-a-scope .text-sage {
+  color: hsl(var(--sage));
+}
+
+.template-a-scope .bg-cream {
+  background-color: hsl(var(--cream));
+}
+
+.template-a-scope .bg-sage {
+  background-color: hsl(var(--sage));
+}
+
+.template-a-scope .border-sage {
+  border-color: hsl(var(--sage));
+}
+
+.template-a-scope .border-charcoal {
+  border-color: hsl(var(--charcoal));
+}
+
+/* Arch frame CSS - used for couple photos */
+.template-a-scope .arch-frame {
+  border-radius: 999px 999px 0 0;
+  overflow: hidden;
+}
+
+/* Text vertical layout */
+.template-a-scope .text-vertical {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+}
+
+/* Opacity utilities */
+.template-a-scope .opacity-\[0\.03\] {
+  opacity: 0.03;
+}
+
+/* Hover states - scoped to template A */
+.template-a-scope a:hover {
+  opacity: 0.8;
+  transition: opacity 0.2s ease;
+}
+
+.template-a-scope button:hover {
+  transition: all 0.2s ease;
+}
+
+/* No global side effects on Template B or other elements */

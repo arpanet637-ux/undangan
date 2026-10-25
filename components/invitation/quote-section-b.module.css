@@ -1,0 +1,78 @@
+/* QuoteSectionB - Isolated Styles for TemplateB Only */
+
+.quoteSection {
+  position: relative;
+  width: 100%;
+  padding: 2rem 1.5rem;
+  text-align: center;
+  background-color: rgba(0, 0, 0, 0.2);
+  color: #ffffff;
+  font-family: 'Montserrat', sans-serif;
+}
+
+/* Large Dividers (Top & Bottom) */
+.dividerLarge {
+  width: 80px;
+  height: 1px;
+  background-color: rgba(255, 255, 255, 0.3);
+  margin: 0 auto;
+}
+
+/* Small Dividers (Between Paragraphs) */
+.dividerSmall {
+  width: 16px;
+  height: 1px;
+  background-color: rgba(255, 255, 255, 0.5);
+  margin: 1.8rem auto;
+}
+
+/* Quote Text Styling */
+.quoteText {
+  font-style: italic;
+  font-weight: 300;
+  font-size: 0.9rem;
+  line-height: 1.8;
+  color: #e0e0e0;
+  letter-spacing: 0.02em;
+  margin: 0;
+}
+
+/* Quote Block Container */
+.quoteBlock {
+  margin: 2rem 0;
+}
+
+.quoteBlock p + p {
+  margin-top: 1.2rem;
+}
+
+/* Responsive for Mobile */
+@media (max-width: 480px) {
+  .quoteSection {
+    padding: 2rem 1rem;
+  }
+
+  .quoteText {
+    font-size: 0.82rem;
+    line-height: 1.7;
+  }
+
+  .dividerLarge {
+    width: 60px;
+  }
+
+  .dividerSmall {
+    width: 12px;
+  }
+}
+
+/* Responsive for Tablet */
+@media (min-width: 481px) and (max-width: 768px) {
+  .quoteSection {
+    padding: 2.5rem 1.25rem;
+  }
+
+  .quoteText {
+    font-size: 0.85rem;
+  }
+}
