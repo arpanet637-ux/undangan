@@ -1,5 +1,16 @@
+import { createHash } from 'crypto'
 import { betterAuth } from 'better-auth'
 import { pool } from '@/lib/db'
+
+// Use BETTER_AUTH_SECRET when set; otherwise derive a stable server-only secret
+// from the database connection string so production never runs without one
+const getSecret = () => {
+  const explicit = process.env.BETTER_AUTH_SECRET || process.env.AUTH_SECRET
+  if (explicit) return explicit
+  const connectionString = pool.options.connectionString
+  if (!connectionString) return undefined
+  return createHash('sha256').update(`better-auth:${connectionString}`).digest('base64')
+}
 
 const getTrustedOrigins = () => {
   const origins: string[] = []
@@ -41,6 +52,11 @@ const getTrustedOrigins = () => {
     }
   }
   
+  // Netlify URLs (production and deploy previews)
+  if (process.env.URL) origins.push(process.env.URL)
+  if (process.env.DEPLOY_PRIME_URL) origins.push(process.env.DEPLOY_PRIME_URL)
+  if (process.env.DEPLOY_URL) origins.push(process.env.DEPLOY_URL)
+
   // Explicit BETTER_AUTH_URL if set
   if (process.env.BETTER_AUTH_URL) {
     origins.push(process.env.BETTER_AUTH_URL)
@@ -52,8 +68,12 @@ const getTrustedOrigins = () => {
   return uniqueOrigins
 }
 
+const netlifyURL =
+  process.env.CONTEXT === 'production' ? process.env.URL : process.env.DEPLOY_PRIME_URL ?? process.env.URL
+
 const baseURL =
   process.env.BETTER_AUTH_URL ??
+  netlifyURL ??
   (process.env.VERCEL_PROJECT_PRODUCTION_URL
     ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
     : process.env.VERCEL_URL
@@ -63,6 +83,7 @@ const baseURL =
 export const auth = betterAuth({
   database: pool,
   baseURL,
+  secret: getSecret(),
   emailAndPassword: {
     enabled: true,
     autoSignIn: true,
