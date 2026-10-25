@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { guests } from '@/lib/db/schema'
+import { guests } from '@/db/schema'
 import { and, eq, ilike } from 'drizzle-orm'
 import { findWedding } from '@/app/api/w/[slug]/route'
 

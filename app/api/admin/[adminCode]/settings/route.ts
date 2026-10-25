@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { settings, weddings } from '@/lib/db/schema'
+import { settings, weddings } from '@/db/schema'
 import { eq, and } from 'drizzle-orm'
 import { getWeddingByCodeOrSlug } from '@/lib/admin-utils'
 

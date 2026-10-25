@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { weddings } from '@/lib/db/schema'
+import { weddings } from '@/db/schema'
 import { eq, or } from 'drizzle-orm'
 
 export async function POST(req: NextRequest) {

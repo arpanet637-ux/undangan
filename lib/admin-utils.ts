@@ -1,5 +1,5 @@
 import { db } from '@/lib/db'
-import { guests, weddings } from '@/lib/db/schema'
+import { guests, weddings } from '@/db/schema'
 import { and, eq, ilike, ne, or } from 'drizzle-orm'
 
 /**

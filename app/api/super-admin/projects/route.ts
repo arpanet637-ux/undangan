@@ -1,5 +1,5 @@
 import { db } from '@/lib/db'
-import { weddings, settings } from '@/lib/db/schema'
+import { weddings, settings } from '@/db/schema'
 import { eq, desc, and } from 'drizzle-orm'
 import { NextRequest, NextResponse } from 'next/server'
 

@@ -3,11 +3,12 @@ import { headers } from 'next/headers'
 import { and, eq, ilike } from 'drizzle-orm'
 import { InvitationClient } from '@/components/invitation/invitation-client'
 import { db } from '@/lib/db'
-import { couple, events, guests, weddings } from '@/lib/db/schema'
+import { couple, events, guests, weddings } from '@/db/schema'
 
 const SITE_ORIGIN = (
   process.env.NEXT_PUBLIC_APP_URL ||
   process.env.BETTER_AUTH_URL ||
+  process.env.URL ||
   (process.env.VERCEL_PROJECT_PRODUCTION_URL
     ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
     : process.env.VERCEL_URL
@@ -27,6 +28,14 @@ const queryValue = (value?: string | string[]) =>
 const getOgImageUrl = (value?: string | null, origin = SITE_ORIGIN, slug?: string) => {
   const candidate = value?.trim()
   if (candidate && slug) {
+    // Uploaded thumbnails are stored as a relative /api/file?pathname=... proxy path.
+    // They are served from our own domain, so they need no https check.
+    const isUploadedProxy = candidate.startsWith('/api/file?pathname=')
+    if (isUploadedProxy) {
+      const imageUrl = new URL(`/api/og-image/${encodeURIComponent(slug)}`, `${origin}/`)
+      imageUrl.searchParams.set('v', encodeURIComponent(candidate).slice(-80))
+      return imageUrl.toString()
+    }
     try {
       const url = new URL(candidate.replace(/^http:\/\//i, 'https://'))
       if (url.protocol === 'https:') {

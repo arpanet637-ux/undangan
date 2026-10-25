@@ -1,8 +1,8 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { eq } from 'drizzle-orm'
-import { get } from '@vercel/blob'
+import { getFile } from '@/lib/storage'
 import { db } from '@/lib/db'
-import { weddings } from '@/lib/db/schema'
+import { weddings } from '@/db/schema'
 
 // Node runtime so we can stream binary from arbitrary upstream image hosts.
 export const runtime = 'nodejs'
@@ -11,6 +11,7 @@ export const dynamic = 'force-dynamic'
 const SITE_ORIGIN = (
   process.env.NEXT_PUBLIC_APP_URL ||
   process.env.BETTER_AUTH_URL ||
+  process.env.URL ||
   (process.env.VERCEL_PROJECT_PRODUCTION_URL
     ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
     : 'https://v0-cetakfotodibali.vercel.app')
@@ -83,21 +84,21 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   }
 
   // Our own uploaded thumbnails are stored as /api/file?pathname=... (this project's
-  // Blob store is PRIVATE, so the raw blob URL isn't publicly fetchable). Stream them
-  // via the authenticated `get()` API instead of a plain fetch.
+  // uploads live in Netlify Blobs). Stream them straight from the store instead of a
+  // plain fetch.
   const ownPathname = extractOwnBlobPathname(rawOgImage)
   if (ownPathname) {
     try {
-      const result = await get(ownPathname, { access: 'private' })
+      const result = await getFile(ownPathname)
       if (!result) throw new Error('Own blob thumbnail not found')
       // Return the Blob stream directly. Buffering the private Blob in the route can
       // intermittently fail on mobile/WhatsApp crawlers when the response is large or
       // the serverless function is interrupted mid-read.
-      return new NextResponse(result.stream, {
+      return new NextResponse(result.stream as ReadableStream, {
         status: 200,
         headers: {
-          'Content-Type': result.blob.contentType || 'image/jpeg',
-          ETag: result.blob.etag,
+          'Content-Type': result.contentType || 'image/jpeg',
+          ...(result.etag ? { ETag: result.etag } : {}),
           'Cache-Control': 'public, max-age=86400, s-maxage=604800, stale-while-revalidate=604800',
           'Content-Disposition': 'inline',
         },

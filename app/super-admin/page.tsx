@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { Layout, Sun, Moon, Sparkles, Users } from 'lucide-react'
+import { Layout, Sun, Moon, Sparkles, Users, UserPlus } from 'lucide-react'
 
 export default function SuperAdminPage() {
   return (
@@ -11,6 +11,12 @@ export default function SuperAdminPage() {
         <div className="mb-12">
           <h1 className="text-4xl font-bold text-white mb-2">Super Admin Dashboard</h1>
           <p className="text-slate-400">Kelola template dan proyek undangan klien</p>
+          <Link
+            href="/super-admin/users"
+            className="inline-flex items-center gap-2 mt-6 px-5 py-2.5 bg-white/5 border border-white/10 hover:border-amber-500/50 rounded-md text-sm text-white transition-colors"
+          >
+            <UserPlus className="w-4 h-4 text-amber-400" /> Kelola User
+          </Link>
         </div>
 
         {/* Template Selection Cards */}
