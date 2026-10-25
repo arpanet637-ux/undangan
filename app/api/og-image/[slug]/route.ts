@@ -11,6 +11,7 @@ export const dynamic = 'force-dynamic'
 const SITE_ORIGIN = (
   process.env.NEXT_PUBLIC_APP_URL ||
   process.env.BETTER_AUTH_URL ||
+  process.env.URL ||
   (process.env.VERCEL_PROJECT_PRODUCTION_URL
     ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
     : 'https://v0-cetakfotodibali.vercel.app')
