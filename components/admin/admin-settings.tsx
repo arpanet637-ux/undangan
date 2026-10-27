@@ -347,7 +347,7 @@ function OgThumbnailUpload({ value, onChange }: { value: string; onChange: (valu
     <div className="space-y-3">
       {value && (
         <div className="flex items-center gap-3 border border-white/10 bg-black/30 p-3">
-          <img src={value} alt="Thumbnail OG project" className="h-16 w-28 object-cover" />
+          <img src={value} alt="Thumbnail OG project" loading="eager" fetchPriority="high" decoding="async" className="h-16 w-28 object-cover" />
           <div className="min-w-0 flex-1">
             <p className="text-xs text-white/70">Thumbnail project aktif</p>
             <p className="truncate text-[11px] text-white/35">{value}</p>

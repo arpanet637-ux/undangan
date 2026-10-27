@@ -98,7 +98,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         headers: {
           'Content-Type': result.blob.contentType || 'image/jpeg',
           ETag: result.blob.etag,
-          'Cache-Control': 'public, max-age=86400, s-maxage=604800, stale-while-revalidate=604800',
+          'Cache-Control': 'public, max-age=31536000, s-maxage=31536000, immutable',
           'Content-Disposition': 'inline',
         },
       })
@@ -124,7 +124,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         Accept: 'image/avif,image/webp,image/jpeg,image/png,*/*',
       },
       signal: controller.signal,
-      cache: 'no-store',
+      cache: 'force-cache',
     })
     clearTimeout(timeout)
 
@@ -143,7 +143,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         'Content-Type': contentType,
         'Content-Length': String(buffer.byteLength),
         // Cache at Vercel's edge and in WhatsApp so the crawler always gets a fast, consistent hit.
-        'Cache-Control': 'public, max-age=86400, s-maxage=604800, stale-while-revalidate=604800',
+        'Cache-Control': 'public, max-age=31536000, s-maxage=31536000, immutable',
       },
     })
   } catch (error) {
