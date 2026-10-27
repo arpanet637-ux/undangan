@@ -26,8 +26,8 @@ export async function generateMetadata({
         siteName: 'Undangan Pernikahan',
         type: 'website',
         images: [{
-          url: 'https://v0-cetakfotodibali.vercel.app/og-thumbnail.jpg',
-          secureUrl: 'https://v0-cetakfotodibali.vercel.app/og-thumbnail.jpg',
+          url: 'https://v0-cetakfotodibali.vercel.app/undangan.jpg',
+          secureUrl: 'https://v0-cetakfotodibali.vercel.app/undangan.jpg',
           width: 1200,
           height: 630,
           alt: 'Thumbnail Undangan',
@@ -37,7 +37,7 @@ export async function generateMetadata({
       },
       twitter: {
         card: 'summary_large_image',
-        images: ['https://v0-cetakfotodibali.vercel.app/og-thumbnail.jpg'],
+        images: ['https://v0-cetakfotodibali.vercel.app/undangan.jpg'],
       },
     }
   }
