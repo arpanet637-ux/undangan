@@ -26,23 +26,16 @@ const queryValue = (value?: string | string[]) =>
 // from our own domain, so the thumbnail loads regardless of the recipient's provider.
 const getOgImageUrl = (value?: string | null, origin = SITE_ORIGIN, slug?: string) => {
   const candidate = value?.trim()
-  if (candidate && slug) {
-    try {
-      const url = new URL(candidate.replace(/^http:\/\//i, 'https://'))
-      if (url.protocol === 'https:') {
-        const imageUrl = new URL(`/api/og-image/${encodeURIComponent(slug)}`, `${origin}/`)
-        // Version the image URL by the configured source. This forces WhatsApp and
-        // other crawlers to re-fetch after the admin replaces the OG Image instead
-        // of reusing a cached failure for the same wedding slug.
-        // `r3` matches RENDER_VERSION in the OG route so old low-res previews are dropped.
-        imageUrl.searchParams.set('v', `r3-${encodeURIComponent(candidate).slice(-80)}`)
-        return imageUrl.toString()
-      }
-    } catch {
-      return null
-    }
-  }
-  return null
+  // Accept every configured source: absolute URLs AND our own relative uploads
+  // (`/api/file?pathname=...`). The OG route resolves and validates the source itself;
+  // rejecting relative paths here previously dropped og:image for every direct upload.
+  if (!candidate || !slug) return null
+  const imageUrl = new URL(`/api/og-image/${encodeURIComponent(slug)}`, `${origin}/`)
+  // Version the image URL by the configured source so WhatsApp re-fetches after the
+  // admin replaces the thumbnail. `r3` matches RENDER_VERSION in the OG route.
+  const sourceKey = Array.from(candidate).reduce((hash, char) => (hash * 31 + char.charCodeAt(0)) >>> 0, 7)
+  imageUrl.searchParams.set('v', `r3-${sourceKey.toString(36)}`)
+  return imageUrl.toString()
 }
 
 export async function generateMetadata({
