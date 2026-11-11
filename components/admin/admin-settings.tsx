@@ -308,6 +308,7 @@ function OgThumbnailUpload({ value, onChange }: { value: string; onChange: (valu
   const [uploading, setUploading] = useState(false)
   const [progress, setProgress] = useState(0)
   const [error, setError] = useState<string | null>(null)
+  const [lowRes, setLowRes] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
   const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -347,7 +348,18 @@ function OgThumbnailUpload({ value, onChange }: { value: string; onChange: (valu
     <div className="space-y-3">
       {value && (
         <div className="flex items-center gap-3 border border-white/10 bg-black/30 p-3">
-          <img src={value} alt="Thumbnail OG project" loading="eager" fetchPriority="high" decoding="async" className="h-16 w-28 object-cover" />
+          <img
+            src={value}
+            alt="Thumbnail OG project"
+            loading="eager"
+            fetchPriority="high"
+            decoding="async"
+            className="h-16 w-28 object-cover"
+            onLoad={event => {
+              const { naturalWidth, naturalHeight } = event.currentTarget
+              setLowRes(naturalWidth < 600 ? `${naturalWidth}x${naturalHeight}` : null)
+            }}
+          />
           <div className="min-w-0 flex-1">
             <p className="text-xs text-white/70">Thumbnail project aktif</p>
             <p className="truncate text-[11px] text-white/35">{value}</p>
@@ -374,7 +386,12 @@ function OgThumbnailUpload({ value, onChange }: { value: string; onChange: (valu
         className="w-full bg-black px-4 py-2.5 text-sm text-white border border-white/10 focus:border-gold focus:outline-none"
         aria-label="URL thumbnail OG"
       />
-      <p className="text-xs text-white/35">Gunakan gambar publik JPG/PNG/WebP maksimal 300 KB. URL harus diawali https://.</p>
+      <p className="text-xs text-white/35">Disarankan upload file langsung. Gambar otomatis diubah ke 1200x630 untuk preview WhatsApp.</p>
+      {value && lowRes && (
+        <p className="text-xs text-amber-400">
+          {`Resolusi gambar ini hanya ${lowRes} px sehingga preview WhatsApp akan buram. Link postimg yang ditempel biasanya versi thumbnail — upload file aslinya lewat tombol di atas.`}
+        </p>
+      )}
       {error && <p className="text-xs text-red-400">{error}</p>}
     </div>
   )

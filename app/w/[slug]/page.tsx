@@ -34,7 +34,8 @@ const getOgImageUrl = (value?: string | null, origin = SITE_ORIGIN, slug?: strin
         // Version the image URL by the configured source. This forces WhatsApp and
         // other crawlers to re-fetch after the admin replaces the OG Image instead
         // of reusing a cached failure for the same wedding slug.
-        imageUrl.searchParams.set('v', encodeURIComponent(candidate).slice(-80))
+        // `r3` matches RENDER_VERSION in the OG route so old low-res previews are dropped.
+        imageUrl.searchParams.set('v', `r3-${encodeURIComponent(candidate).slice(-80)}`)
         return imageUrl.toString()
       }
     } catch {
