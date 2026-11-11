@@ -161,23 +161,48 @@ const renderWithJpegJs = (source: Buffer) => {
 
 const isJpeg = (buffer: Buffer) => buffer.length > 3 && buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff
 
-const renderOgJpeg = async (source: Buffer) => {
-  try {
-    return await renderWithSharp(source)
-  } catch (error) {
-    console.error('[v0] sharp unavailable, using jpeg-js fallback:', error)
-  }
-  if (isJpeg(source)) return renderWithJpegJs(source)
-  throw new Error('Source is not a JPEG and sharp is unavailable')
+const detectImageType = (buffer: Buffer) => {
+  if (isJpeg(buffer)) return 'image/jpeg'
+  if (buffer.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]))) return 'image/png'
+  if (buffer.subarray(0, 4).toString('latin1') === 'RIFF' && buffer.subarray(8, 12).toString('latin1') === 'WEBP')
+    return 'image/webp'
+  if (buffer.subarray(0, 3).toString('latin1') === 'GIF') return 'image/gif'
+  return null
 }
 
-const jpegResponse = (body: Buffer) =>
+// WhatsApp silently drops preview images that are too large, so un-resized originals
+// are only passed through when they are small enough to still show up.
+const MAX_PASSTHROUGH_BYTES = 600 * 1024
+
+type RenderedOg = { body: Buffer; contentType: string; cacheable: boolean }
+
+const renderOgImage = async (source: Buffer): Promise<RenderedOg> => {
+  try {
+    return { body: await renderWithSharp(source), contentType: 'image/jpeg', cacheable: true }
+  } catch (error) {
+    console.error('[v0] sharp unavailable, using fallback:', error)
+  }
+  if (isJpeg(source)) {
+    try {
+      return { body: renderWithJpegJs(source), contentType: 'image/jpeg', cacheable: true }
+    } catch (error) {
+      console.error('[v0] jpeg-js fallback failed:', error)
+    }
+  }
+  const type = detectImageType(source)
+  if (type && source.byteLength <= MAX_PASSTHROUGH_BYTES) {
+    return { body: source, contentType: type, cacheable: false }
+  }
+  throw new Error(`Cannot render OG image (type=${type}, bytes=${source.byteLength})`)
+}
+
+const imageResponse = (body: Buffer, contentType = 'image/jpeg') =>
   new NextResponse(new Uint8Array(body), {
     status: 200,
     headers: {
-      'Content-Type': 'image/jpeg',
+      'Content-Type': contentType,
       'Content-Length': String(body.byteLength),
-      'Content-Disposition': 'inline; filename="og.jpg"',
+      'Content-Disposition': `inline; filename="og.${contentType.split('/')[1]}"`,
       // The page links this image with a `v=` version param, so it is safe to cache hard.
       'Cache-Control': 'public, max-age=86400, s-maxage=31536000, stale-while-revalidate=31536000',
       'CDN-Cache-Control': 'public, s-maxage=31536000',
@@ -207,7 +232,7 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
     const cached = await get(cachePathname, { access: 'private' })
     if (cached) {
       const body = await streamToBuffer(cached.stream)
-      if (body.byteLength > 0) return jpegResponse(body)
+      if (body.byteLength > 0) return imageResponse(body)
     }
   } catch {
     // cache miss or Blob hiccup — render below
@@ -215,20 +240,22 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
 
   try {
     const source = await loadSourceImage(rawOgImage)
-    const rendered = await renderOgJpeg(source)
+    const rendered = await renderOgImage(source)
 
-    try {
-      await put(cachePathname, rendered, {
-        access: 'private',
-        addRandomSuffix: false,
-        allowOverwrite: true,
-        contentType: 'image/jpeg',
-      })
-    } catch (error) {
-      console.error('[v0] OG cache write failed:', error)
+    if (rendered.cacheable) {
+      try {
+        await put(cachePathname, rendered.body, {
+          access: 'private',
+          addRandomSuffix: false,
+          allowOverwrite: true,
+          contentType: 'image/jpeg',
+        })
+      } catch (error) {
+        console.error('[v0] OG cache write failed:', error)
+      }
     }
 
-    return jpegResponse(rendered)
+    return imageResponse(rendered.body, rendered.contentType)
   } catch (error) {
     console.error('[v0] OG render failed:', error)
     return missingOgImageResponse()
