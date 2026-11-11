@@ -34,7 +34,7 @@ const getOgImageUrl = (value?: string | null, origin = SITE_ORIGIN, slug?: strin
   // Version the image URL by the configured source so WhatsApp re-fetches after the
   // admin replaces the thumbnail. `r3` matches RENDER_VERSION in the OG route.
   const sourceKey = Array.from(candidate).reduce((hash, char) => (hash * 31 + char.charCodeAt(0)) >>> 0, 7)
-  imageUrl.searchParams.set('v', `r3-${sourceKey.toString(36)}`)
+  imageUrl.searchParams.set('v', `r4-${sourceKey.toString(36)}`)
   return imageUrl.toString()
 }
 
