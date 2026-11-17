@@ -33,11 +33,15 @@ const getTrustedOrigins = () => {
     origins.push(`https://${vercelUrl}`)
   }
   
-  // Add environment-based origins
-  if (process.env.V0_RUNTIME_URL) {
-    origins.push(process.env.V0_RUNTIME_URL)
-    if (!process.env.V0_RUNTIME_URL.startsWith('http')) {
-      origins.push(`https://${process.env.V0_RUNTIME_URL}`)
+  if (process.env.NODE_ENV === 'development') {
+    for (const url of [
+      process.env.V0_RUNTIME_URL,
+      process.env.V0_DEV_APP_URL,
+      process.env.V0_BUILD_URL,
+      process.env.V0_SANDBOX_URL,
+    ]) {
+      if (!url) continue
+      origins.push(url.startsWith('http') ? new URL(url).origin : `https://${url}`)
     }
   }
   
@@ -46,11 +50,16 @@ const getTrustedOrigins = () => {
     origins.push(process.env.BETTER_AUTH_URL)
   }
   
-  // Remove duplicates
-  const uniqueOrigins = Array.from(new Set(origins)).filter(Boolean)
-  console.log('[v0] Better Auth trusted origins:', uniqueOrigins)
-  return uniqueOrigins
+  return Array.from(new Set(origins)).filter(Boolean)
 }
+
+const isDevelopment = process.env.NODE_ENV === 'development'
+
+// The v0 preview renders the app in a cross-site iframe, so development cookies
+// must be SameSite=None; Secure or the browser drops the session after login.
+const cookieAttributes = isDevelopment
+  ? { sameSite: 'none' as const, secure: true }
+  : { sameSite: 'lax' as const, secure: process.env.NODE_ENV === 'production' }
 
 const baseURL =
   process.env.BETTER_AUTH_URL ??
@@ -72,23 +81,11 @@ export const auth = betterAuth({
   session: {
     expiresIn: 60 * 60 * 24 * 7,
     updateAge: 60 * 60 * 24,
-    cookie: {
-      attributes: {
-        sameSite: 'lax' as const,
-        secure: process.env.NODE_ENV === 'production',
-      }
-    }
   },
   advanced: {
-    defaultCookieAttributes: {
-      sameSite: 'lax' as const,
-      secure: process.env.NODE_ENV === 'production',
-    },
-    useSecureCookies: process.env.NODE_ENV === 'production',
-    // Disable origin check to allow auth from any Vercel deployment URL
-    // Better Auth will still validate via CSRF tokens and other security measures
-    disableOriginCheck: true,
-    // Keep CSRF check enabled for security
-    skipCsrfCheck: process.env.NODE_ENV !== 'production',
+    defaultCookieAttributes: cookieAttributes,
+    useSecureCookies: process.env.NODE_ENV === 'production' || isDevelopment,
+    // Production is served from several domains (custom domain + vercel.app)
+    disableOriginCheck: process.env.NODE_ENV === 'production',
   },
 }) 
