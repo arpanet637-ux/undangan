@@ -1,45 +1,40 @@
 import type { Metadata, Viewport } from 'next'
-import localFont from 'next/font/local'
+import { Cormorant_Garamond, Jost, Great_Vibes, Montserrat, Poppins } from 'next/font/google'
 import './globals.css'
 
-// Fonts are self-hosted so production builds never depend on fetching Google Fonts.
-const cormorant = localFont({
-  src: [
-    { path: './fonts/cormorant-garamond-latin-wght-normal.woff2', weight: '300 700', style: 'normal' },
-    { path: './fonts/cormorant-garamond-latin-wght-italic.woff2', weight: '300 700', style: 'italic' },
-  ],
+const cormorant = Cormorant_Garamond({
+  subsets: ['latin'],
+  weight: ['300', '400', '500'],
+  style: ['normal', 'italic'],
   variable: '--font-display',
   display: 'swap',
 })
 
-const jost = localFont({
-  src: [{ path: './fonts/jost-latin-wght-normal.woff2', weight: '100 900', style: 'normal' }],
+const jost = Jost({
+  subsets: ['latin'],
+  weight: ['300', '400', '500'],
   variable: '--font-body',
   display: 'swap',
 })
 
-const greatVibes = localFont({
-  src: [{ path: './fonts/great-vibes-latin-400-normal.woff2', weight: '400', style: 'normal' }],
+const greatVibes = Great_Vibes({
+  subsets: ['latin'],
+  weight: '400',
   variable: '--font-bela-yasmine',
   display: 'swap',
 })
 
-const montserrat = localFont({
-  src: [
-    { path: './fonts/montserrat-latin-wght-normal.woff2', weight: '100 900', style: 'normal' },
-    { path: './fonts/montserrat-latin-wght-italic.woff2', weight: '100 900', style: 'italic' },
-  ],
+const montserrat = Montserrat({
+  subsets: ['latin'],
+  weight: ['300', '400', '500'],
+  style: ['normal', 'italic'],
   variable: '--font-montserrat',
   display: 'swap',
 })
 
-const poppins = localFont({
-  src: [
-    { path: './fonts/poppins-latin-400-normal.woff2', weight: '400', style: 'normal' },
-    { path: './fonts/poppins-latin-500-normal.woff2', weight: '500', style: 'normal' },
-    { path: './fonts/poppins-latin-600-normal.woff2', weight: '600', style: 'normal' },
-    { path: './fonts/poppins-latin-700-normal.woff2', weight: '700', style: 'normal' },
-  ],
+const poppins = Poppins({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
   variable: '--font-glacial-indifference',
   display: 'swap',
 })
