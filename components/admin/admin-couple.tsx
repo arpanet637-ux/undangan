@@ -170,6 +170,7 @@ export function AdminCouple({ adminCode }: { adminCode: string }) {
   const [saved, setSaved] = useState<number | null>(null)
   const [successMsg, setSuccessMsg] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const [saveError, setSaveError] = useState<string | null>(null)
   const [template, setTemplate] = useState('template-a')
 
   useEffect(() => {
@@ -181,8 +182,8 @@ export function AdminCouple({ adminCode }: { adminCode: string }) {
 
   // Default couple data structure
   const defaultCouple: CoupleData[] = [
-    { id: 1, role: 'groom', full_name: '', nickname: '', photo_url: '', father_name: '', mother_name: '', address: '', child_order: '' },
-    { id: 2, role: 'bride', full_name: '', nickname: '', photo_url: '', father_name: '', mother_name: '', address: '', child_order: '' },
+    { id: -1, role: 'groom', full_name: '', nickname: '', photo_url: '', father_name: '', mother_name: '', address: '', child_order: '' },
+    { id: -2, role: 'bride', full_name: '', nickname: '', photo_url: '', father_name: '', mother_name: '', address: '', child_order: '' },
   ]
 
   useEffect(() => {
@@ -244,7 +245,7 @@ export function AdminCouple({ adminCode }: { adminCode: string }) {
   const handleSave = async (person: CoupleData) => {
     try {
       setSaving(true)
-      setError(null)
+      setSaveError(null)
       
       const response = await fetch(`/api/admin/${adminCode}/couple/${person.id}`, {
         method: 'PUT',
@@ -252,11 +253,14 @@ export function AdminCouple({ adminCode }: { adminCode: string }) {
         body: JSON.stringify(person),
       })
       
+      const result = await response.json().catch(() => ({}))
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || `API error: ${response.status}`)
+        throw new Error(result.error || `Gagal menyimpan (kode ${response.status})`)
       }
       
+      if (typeof result.id === 'number') {
+        setCouple(prev => prev.map(p => p.role === person.role ? { ...p, id: result.id } : p))
+      }
       setSaved(person.id)
       setSuccessMsg('Data mempelai berhasil disimpan')
       setSaving(false)
@@ -265,7 +269,7 @@ export function AdminCouple({ adminCode }: { adminCode: string }) {
       setTimeout(() => setSuccessMsg(''), 2000)
     } catch (err) {
       setSaving(false)
-      setError(err instanceof Error ? err.message : 'Gagal menyimpan data')
+      setSaveError(err instanceof Error ? err.message : 'Gagal menyimpan data')
     }
   }
 
@@ -292,6 +296,11 @@ export function AdminCouple({ adminCode }: { adminCode: string }) {
   return (
     <div className="p-6 md:p-8 max-w-4xl">
       <h1 className="text-xl font-display text-white mb-6">Kelola Mempelai</h1>
+      {saveError && (
+        <div role="alert" className="mb-6 bg-red-500/20 border border-red-500 p-3 rounded text-red-200 text-sm font-body">
+          {saveError}
+        </div>
+      )}
       {successMsg && (
         <div className="mb-6 bg-emerald-900/30 border border-emerald-500/50 p-3 rounded flex items-center gap-2 text-emerald-400 text-sm font-body">
           <CheckCircle className="w-4 h-4" />
