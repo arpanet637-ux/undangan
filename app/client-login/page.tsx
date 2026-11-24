@@ -14,17 +14,26 @@ export default async function ClientLoginPage({
   const { redirect: redirectTo } = await searchParams
   
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-900 to-slate-950 flex items-center justify-center p-4">
+    <div
+      className="min-h-screen flex items-center justify-center p-4"
+      style={{
+        backgroundColor: '#0f0a24',
+        backgroundImage: 'linear-gradient(135deg, #020617 0%, #581c87 50%, #020617 100%)',
+        colorScheme: 'dark',
+      }}
+    >
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">Cetak Foto di Bali</h1>
-          <p className="text-slate-300">Login sebagai Client</p>
+          <h1 className="text-3xl font-bold mb-2" style={{ color: '#ffffff' }}>
+            Cetak Foto di Bali
+          </h1>
+          <p style={{ color: '#cbd5e1' }}>Login sebagai Client</p>
         </div>
 
         <ClientLoginForm redirectTo={redirectTo} />
 
-        <div className="mt-8 pt-8 border-t border-white/10">
-          <p className="text-center text-sm text-slate-400">
+        <div className="mt-8 pt-8" style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+          <p className="text-center text-sm" style={{ color: '#94a3b8' }}>
             Dapatkan kode akses dari admin untuk login
           </p>
         </div>

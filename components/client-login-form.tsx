@@ -53,9 +53,20 @@ export function ClientLoginForm({ redirectTo }: { redirectTo?: string }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-lg p-8 space-y-6">
+    <form
+      onSubmit={handleSubmit}
+      className="rounded-lg p-8 space-y-6"
+      style={{
+        backgroundColor: 'rgba(255,255,255,0.06)',
+        border: '1px solid rgba(255,255,255,0.12)',
+      }}
+    >
       <div>
-        <label htmlFor="accessCode" className="block text-sm font-medium text-white mb-2">
+        <label
+          htmlFor="accessCode"
+          className="block text-sm font-medium mb-2"
+          style={{ color: '#ffffff' }}
+        >
           Kode Akses
         </label>
         <div className="relative">
@@ -67,7 +78,14 @@ export function ClientLoginForm({ redirectTo }: { redirectTo?: string }) {
             value={accessCode}
             onChange={(e) => setAccessCode(e.target.value)}
             disabled={loading}
-            className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-colors disabled:opacity-50"
+            className="w-full pl-10 pr-4 py-3 rounded-lg placeholder-slate-400 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-colors disabled:opacity-50"
+            style={{
+              backgroundColor: 'rgba(255,255,255,0.08)',
+              border: '1px solid rgba(255,255,255,0.2)',
+              color: '#ffffff',
+              WebkitTextFillColor: '#ffffff',
+              fontSize: '16px',
+            }}
           />
         </div>
       </div>
@@ -89,12 +107,20 @@ export function ClientLoginForm({ redirectTo }: { redirectTo?: string }) {
       <button
         type="submit"
         disabled={loading || !accessCode.trim()}
-        className="w-full px-4 py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 disabled:from-slate-600 disabled:to-slate-600 text-white font-medium rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full px-4 py-3 font-medium rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+        style={{
+          backgroundColor: '#a855f7',
+          backgroundImage:
+            loading || !accessCode.trim()
+              ? 'linear-gradient(90deg, #475569, #475569)'
+              : 'linear-gradient(90deg, #a855f7, #ec4899)',
+          color: '#ffffff',
+        }}
       >
         {loading ? 'Memverifikasi...' : 'Login'}
       </button>
 
-      <p className="text-center text-xs text-slate-400">
+      <p className="text-center text-xs" style={{ color: '#94a3b8' }}>
         Kode akses dapat diminta kepada admin yang membuat project pernikahan Anda
       </p>
     </form>
