@@ -2,7 +2,7 @@
 
 import { useState, useEffect, createContext, useContext } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import {
   Heart, LayoutDashboard, Users, Calendar, Image,
   MessageCircle, Settings, Gift, ChevronLeft, Menu, X, Eye
@@ -46,12 +46,21 @@ export function AdminLayout({ adminCode, children }: AdminLayoutProps) {
   const [wedding, setWedding] = useState<Wedding | null>(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const pathname = usePathname()
+  const router = useRouter()
 
   useEffect(() => {
     fetch(`/api/admin/${adminCode}`)
       .then(r => r.json())
-      .then(setWedding)
-  }, [adminCode])
+      .then((data: Wedding) => {
+        setWedding(data)
+        // Admin pages opened by slug break once the slug is regenerated, so move to the stable adminCode URL.
+        if (data?.adminCode && data.adminCode !== adminCode) {
+          const nextPath = pathname.replace(`/admin/${adminCode}`, `/admin/${data.adminCode}`)
+          router.replace(nextPath)
+        }
+      })
+      .catch(() => {})
+  }, [adminCode, pathname, router])
 
   const basePath = `/admin/${adminCode}`
 

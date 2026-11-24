@@ -81,7 +81,8 @@ export function NewProjectForm({
       const newProject = result
       
       // Redirect ke admin panel project baru
-      router.push(`/admin/${newProject.slug}`)
+      // The slug changes when couple nicknames are saved, so admin URLs must use the stable adminCode.
+      router.push(`/admin/${newProject.adminCode || adminCode}`)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Terjadi kesalahan')
     } finally {
