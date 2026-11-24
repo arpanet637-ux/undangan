@@ -6,12 +6,19 @@ export const metadata = {
   description: 'Login sebagai client untuk mengelola project pernikahan Anda',
 }
 
+const INITIAL_ERRORS: Record<string, string> = {
+  empty: 'Masukkan kode akses',
+  invalid: 'Kode akses tidak valid',
+  server: 'Terjadi kesalahan saat memverifikasi kode akses. Silakan coba lagi.',
+}
+
 export default async function ClientLoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ redirect?: string }>
+  searchParams: Promise<{ redirect?: string; error?: string }>
 }) {
-  const { redirect: redirectTo } = await searchParams
+  const { redirect: redirectTo, error } = await searchParams
+  const initialError = error ? INITIAL_ERRORS[error] ?? '' : ''
   
   return (
     <div
@@ -30,7 +37,7 @@ export default async function ClientLoginPage({
           <p style={{ color: '#cbd5e1' }}>Login sebagai Client</p>
         </div>
 
-        <ClientLoginForm redirectTo={redirectTo} />
+        <ClientLoginForm redirectTo={redirectTo} initialError={initialError} />
 
         <div className="mt-8 pt-8" style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}>
           <p className="text-center text-sm" style={{ color: '#94a3b8' }}>
