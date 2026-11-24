@@ -3,11 +3,26 @@
 import { useRef, useState } from 'react'
 import { Lock, AlertCircle, CheckCircle } from 'lucide-react'
 
-export function ClientLoginForm({ redirectTo }: { redirectTo?: string }) {
+// Hanya path internal yang boleh dipakai sebagai tujuan setelah login
+function toSafeInternalPath(value?: string) {
+  if (!value || !value.startsWith('/') || value.startsWith('//') || value.includes('\\')) {
+    return undefined
+  }
+  return value
+}
+
+export function ClientLoginForm({
+  redirectTo,
+  initialError = '',
+}: {
+  redirectTo?: string
+  initialError?: string
+}) {
   const inputRef = useRef<HTMLInputElement>(null)
+  const safeRedirectTo = toSafeInternalPath(redirectTo)
   const [accessCode, setAccessCode] = useState('')
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
+  const [error, setError] = useState(initialError)
   const [success, setSuccess] = useState('')
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -52,7 +67,7 @@ export function ClientLoginForm({ redirectTo }: { redirectTo?: string }) {
         }
 
         setSuccess('Kode akses valid! Mengalihkan...')
-        const target = redirectTo || `/admin/${data.adminCode}`
+        const target = safeRedirectTo || `/admin/${data.adminCode}`
 
         // Navigasi penuh lebih andal di browser in-app (WhatsApp, Instagram, dll)
         window.location.assign(target)
@@ -78,6 +93,8 @@ export function ClientLoginForm({ redirectTo }: { redirectTo?: string }) {
 
   return (
     <form
+      method="post"
+      action="/api/client-login/verify"
       onSubmit={handleSubmit}
       className="rounded-lg p-8 space-y-6"
       style={{
@@ -85,6 +102,8 @@ export function ClientLoginForm({ redirectTo }: { redirectTo?: string }) {
         border: '1px solid rgba(255,255,255,0.12)',
       }}
     >
+      {safeRedirectTo && <input type="hidden" name="redirect" value={safeRedirectTo} />}
+
       <div>
         <label
           htmlFor="accessCode"
@@ -98,6 +117,7 @@ export function ClientLoginForm({ redirectTo }: { redirectTo?: string }) {
           <input
             ref={inputRef}
             id="accessCode"
+            name="accessCode"
             type="text"
             autoComplete="off"
             autoCapitalize="none"
