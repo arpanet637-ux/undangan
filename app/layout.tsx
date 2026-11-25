@@ -1,43 +1,16 @@
 import type { Metadata, Viewport } from 'next'
-import { Cormorant_Garamond, Jost, Great_Vibes, Montserrat, Poppins } from 'next/font/google'
+// Fonts are bundled from npm (@fontsource) so builds never depend on fetching Google Fonts.
+import '@fontsource-variable/cormorant-garamond/wght.css'
+import '@fontsource-variable/cormorant-garamond/wght-italic.css'
+import '@fontsource-variable/jost/wght.css'
+import '@fontsource/great-vibes/400.css'
+import '@fontsource-variable/montserrat/wght.css'
+import '@fontsource-variable/montserrat/wght-italic.css'
+import '@fontsource/poppins/400.css'
+import '@fontsource/poppins/500.css'
+import '@fontsource/poppins/600.css'
+import '@fontsource/poppins/700.css'
 import './globals.css'
-
-const cormorant = Cormorant_Garamond({
-  subsets: ['latin'],
-  weight: ['300', '400', '500'],
-  style: ['normal', 'italic'],
-  variable: '--font-display',
-  display: 'swap',
-})
-
-const jost = Jost({
-  subsets: ['latin'],
-  weight: ['300', '400', '500'],
-  variable: '--font-body',
-  display: 'swap',
-})
-
-const greatVibes = Great_Vibes({
-  subsets: ['latin'],
-  weight: '400',
-  variable: '--font-bela-yasmine',
-  display: 'swap',
-})
-
-const montserrat = Montserrat({
-  subsets: ['latin'],
-  weight: ['300', '400', '500'],
-  style: ['normal', 'italic'],
-  variable: '--font-montserrat',
-  display: 'swap',
-})
-
-const poppins = Poppins({
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
-  variable: '--font-glacial-indifference',
-  display: 'swap',
-})
 
 const APP_ORIGIN = (
   process.env.NEXT_PUBLIC_APP_URL ||
@@ -88,7 +61,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="id" className={`bg-background ${cormorant.variable} ${jost.variable} ${greatVibes.variable} ${montserrat.variable} ${poppins.variable}`}>
+    <html lang="id" className="bg-background">
       <body className="antialiased">
         {children}
       </body>
