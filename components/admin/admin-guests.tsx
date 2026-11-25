@@ -60,23 +60,54 @@ export function AdminGuests({ adminCode }: { adminCode: string }) {
   const [waTemplate, setWaTemplate] = useState<string | null>(null)
   const [events, setEvents] = useState<Array<{ eventDate?: string | null; eventTime?: string | null; venueName?: string | null; venueAddress?: string | null; mapsUrl?: string | null }>>([])
   const [successMsg, setSuccessMsg] = useState('')
+  const [loadError, setLoadError] = useState('')
+  const [saveError, setSaveError] = useState('')
+  const [saving, setSaving] = useState(false)
+
+  // Mobile networks drop or stall requests; without a timeout the page spins forever.
+  const request = async (url: string, init?: RequestInit, timeoutMs = 20000) => {
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), timeoutMs)
+    try {
+      return await fetch(url, { ...init, signal: controller.signal, cache: 'no-store' })
+    } finally {
+      clearTimeout(timer)
+    }
+  }
 
   const fetchGuests = async () => {
-    const res = await fetch(`/api/admin/${adminCode}/guests`)
-    const data = await res.json()
-    setGuests(Array.isArray(data) ? data.map(normalize) : [])
-    setLoading(false)
+    setLoadError('')
+    try {
+      const res = await request(`/api/admin/${adminCode}/guests`)
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      const data = await res.json()
+      setGuests(Array.isArray(data) ? data.map(normalize) : [])
+    } catch {
+      setLoadError('Gagal memuat daftar tamu. Periksa koneksi internet lalu coba lagi.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   const fetchTemplate = async () => {
-    const [settingsRes, eventsRes] = await Promise.all([
-      fetch(`/api/admin/${adminCode}/settings`),
-      fetch(`/api/admin/${adminCode}/events`),
-    ])
-    const settings = await settingsRes.json()
-    const eventData = await eventsRes.json()
-    if (settings?.wa_template) setWaTemplate(settings.wa_template)
-    setEvents(Array.isArray(eventData) ? eventData : [])
+    try {
+      const [settingsRes, eventsRes] = await Promise.all([
+        request(`/api/admin/${adminCode}/settings`),
+        request(`/api/admin/${adminCode}/events`),
+      ])
+      const settings = settingsRes.ok ? await settingsRes.json() : null
+      const eventData = eventsRes.ok ? await eventsRes.json() : []
+      if (settings?.wa_template) setWaTemplate(settings.wa_template)
+      setEvents(Array.isArray(eventData) ? eventData : [])
+    } catch {
+      // The WhatsApp template is optional; the default message is used when it can't load.
+    }
+  }
+
+  const retryLoad = () => {
+    setLoading(true)
+    fetchGuests()
+    fetchTemplate()
   }
 
   useEffect(() => {
@@ -85,20 +116,36 @@ export function AdminGuests({ adminCode }: { adminCode: string }) {
   }, [adminCode])
 
   const handleSave = async () => {
-    if (!form.name.trim()) return
+    if (saving || !form.name.trim()) return
+    setSaving(true)
+    setSaveError('')
     const url = editingId === 'new'
       ? `/api/admin/${adminCode}/guests`
       : `/api/admin/${adminCode}/guests/${editingId}`
     const method = editingId === 'new' ? 'POST' : 'PUT'
-    await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) })
-    setEditingId(null)
-    setSuccessMsg('Tamu berhasil disimpan')
-    setTimeout(() => location.reload(), 1500)
+    try {
+      const res = await request(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) })
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      setEditingId(null)
+      setSuccessMsg('Tamu berhasil disimpan')
+      await fetchGuests()
+      setTimeout(() => setSuccessMsg(''), 3000)
+    } catch {
+      setSaveError('Tamu gagal disimpan. Periksa koneksi internet lalu tekan Simpan lagi.')
+    } finally {
+      setSaving(false)
+    }
   }
 
   const handleDelete = async (id: number) => {
     if (!confirm('Hapus tamu ini?')) return
-    await fetch(`/api/admin/${adminCode}/guests/${id}`, { method: 'DELETE' })
+    try {
+      const res = await request(`/api/admin/${adminCode}/guests/${id}`, { method: 'DELETE' })
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    } catch {
+      setLoadError('Tamu gagal dihapus. Periksa koneksi internet lalu coba lagi.')
+      return
+    }
     fetchGuests()
   }
 
@@ -164,10 +211,18 @@ export function AdminGuests({ adminCode }: { adminCode: string }) {
           {successMsg}
         </div>
       )}
+      {loadError && (
+        <div role="alert" className="mb-6 bg-red-900/30 border border-red-500/50 p-3 rounded flex items-center justify-between gap-3 text-red-300 text-sm font-body">
+          <span>{loadError}</span>
+          <button onClick={retryLoad} className="shrink-0 px-3 py-1 border border-red-400/60 text-red-200 hover:bg-red-500/10 text-xs">
+            Coba Lagi
+          </button>
+        </div>
+      )}
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-xl font-display text-white">Kelola Tamu</h1>
         <button
-          onClick={() => { setEditingId('new'); setForm(emptyForm); setCodeTouched(false) }}
+          onClick={() => { setEditingId('new'); setForm(emptyForm); setCodeTouched(false); setSaveError('') }}
           className="flex items-center gap-2 px-4 py-2 bg-gold text-black text-sm font-body font-semibold hover:bg-gold/90 transition-colors"
         >
           <Plus className="w-4 h-4" />
@@ -248,10 +303,13 @@ export function AdminGuests({ adminCode }: { adminCode: string }) {
               {wedding ? `${window.location.origin}/w/${wedding.slug}/to/${form.invitation_code || previewSlug(form.name) || '...'}` : ''}
             </p>
           </div>
+          {saveError && (
+            <p role="alert" className="mt-4 text-sm text-red-300 font-body">{saveError}</p>
+          )}
           <div className="flex gap-3 justify-end mt-4">
-            <button onClick={() => setEditingId(null)} className="px-4 py-2 border border-white/40 text-white/80 hover:text-white hover:border-white/60 text-sm font-body transition-colors">Batal</button>
-            <button onClick={handleSave} className="px-5 py-2 bg-gold text-black text-sm font-body font-semibold flex items-center gap-2 hover:bg-gold/90 transition-colors">
-              <Save className="w-4 h-4" />Simpan
+            <button onClick={() => { setEditingId(null); setSaveError('') }} disabled={saving} className="px-4 py-2 border border-white/40 text-white/80 hover:text-white hover:border-white/60 text-sm font-body transition-colors disabled:opacity-50">Batal</button>
+            <button onClick={handleSave} disabled={saving} className="px-5 py-2 bg-gold text-black text-sm font-body font-semibold flex items-center gap-2 hover:bg-gold/90 transition-colors disabled:opacity-60">
+              <Save className="w-4 h-4" />{saving ? 'Menyimpan...' : 'Simpan'}
             </button>
           </div>
         </div>
