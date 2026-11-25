@@ -4,8 +4,17 @@
 
 @custom-variant dark (&:is(.dark *));
 
+:root {
+  /* Font families come from @fontsource packages imported in app/layout.tsx */
+  --font-display: 'Cormorant Garamond Variable', 'Cormorant Garamond', Georgia, serif;
+  --font-body: 'Jost Variable', 'Jost', system-ui, sans-serif;
+  --font-bela-yasmine: 'Great Vibes', cursive;
+  --font-montserrat: 'Montserrat Variable', 'Montserrat', sans-serif;
+  --font-glacial-indifference: 'Poppins', sans-serif;
+}
+
 @theme inline {
-  /* Wedding app fonts - next/font injects --font-display and --font-body on <html> */
+  /* Wedding app fonts - defined in :root above */
   --font-sans: var(--font-body, system-ui, sans-serif);
   --font-serif: var(--font-display, Georgia, serif);
 
