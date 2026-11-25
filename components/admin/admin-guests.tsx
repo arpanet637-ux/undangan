@@ -149,14 +149,7 @@ export function AdminGuests({ adminCode }: { adminCode: string }) {
     fetchGuests()
   }
 
-  const copyLink = (g: GuestData) => {
-    const link = `${window.location.origin}/w/${wedding?.slug}/to/${g.invitationCode}`
-    navigator.clipboard.writeText(link)
-    setCopiedId(g.id)
-    setTimeout(() => setCopiedId(null), 2000)
-  }
-
-  const shareWA = (g: GuestData) => {
+  const buildWaMessage = (g: GuestData) => {
     const link = `${window.location.origin}/w/${wedding?.slug}/to/${g.invitationCode}`
     const event = events[0]
     const formatDate = (value?: string | null) => {
@@ -181,8 +174,30 @@ export function AdminGuests({ adminCode }: { adminCode: string }) {
     }
     const defaultMsg = `Kepada Yth.\nBapak/Ibu/Saudara/i\n{nama_tamu}\n\nOm Swastyastu,\n\nWAKTU & TEMPAT\nTanggal : {tanggal_acara}\nJam : {jam_acara}\nAlamat : {alamat_acara}\nGoogle Map : {google_maps}\n\n{link_undangan}`
     const template = waTemplate?.trim() || defaultMsg
-    const msg = Object.entries(values).reduce((text, [variable, value]) => text.split(variable).join(value), template)
-    window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank')
+    return Object.entries(values).reduce((text, [variable, value]) => text.split(variable).join(value), template)
+  }
+
+  const copyMessage = async (g: GuestData) => {
+    const msg = buildWaMessage(g)
+    try {
+      await navigator.clipboard.writeText(msg)
+    } catch {
+      const textarea = document.createElement('textarea')
+      textarea.value = msg
+      textarea.setAttribute('readonly', '')
+      textarea.style.position = 'fixed'
+      textarea.style.opacity = '0'
+      document.body.appendChild(textarea)
+      textarea.select()
+      document.execCommand('copy')
+      document.body.removeChild(textarea)
+    }
+    setCopiedId(g.id)
+    setTimeout(() => setCopiedId(null), 2000)
+  }
+
+  const shareWA = (g: GuestData) => {
+    window.open(`https://wa.me/?text=${encodeURIComponent(buildWaMessage(g))}`, '_blank')
   }
 
   const filtered = guests.filter(g =>
@@ -358,10 +373,10 @@ export function AdminGuests({ adminCode }: { adminCode: string }) {
                   </td>
                   <td className="py-3">
                     <div className="flex items-center justify-end gap-0.5">
-                      <button onClick={() => copyLink(g)} className="p-1.5 text-white/30 hover:text-gold">
+                      <button onClick={() => copyMessage(g)} className="p-1.5 text-white/30 hover:text-gold" title="Salin pesan WhatsApp" aria-label={`Salin pesan WhatsApp untuk ${g.name}`}>
                         {copiedId === g.id ? <Check className="w-3.5 h-3.5 text-green-400" /> : <Copy className="w-3.5 h-3.5" />}
                       </button>
-                      <button onClick={() => shareWA(g)} className="p-1.5 text-white/30 hover:text-green-400">
+                      <button onClick={() => shareWA(g)} className="p-1.5 text-white/30 hover:text-green-400" title="Kirim via WhatsApp" aria-label={`Kirim undangan via WhatsApp untuk ${g.name}`}>
                         <MessageCircle className="w-3.5 h-3.5" />
                       </button>
                       {wedding && (
