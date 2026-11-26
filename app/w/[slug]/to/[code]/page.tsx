@@ -15,6 +15,7 @@ export async function generateMetadata({
     })
   } catch (error) {
     console.error('[v0] Guest metadata fallback:', error)
+    const fallbackImage = `https://v0-cetakfotodibali.vercel.app/api/og-image/${encodeURIComponent(slug)}/og.jpg`
     return {
       metadataBase: new URL('https://v0-cetakfotodibali.vercel.app'),
       title: 'Undangan Pernikahan',
@@ -26,8 +27,8 @@ export async function generateMetadata({
         siteName: 'Undangan Pernikahan',
         type: 'website',
         images: [{
-          url: `https://v0-cetakfotodibali.vercel.app/api/og-image/${encodeURIComponent(slug)}`,
-          secureUrl: `https://v0-cetakfotodibali.vercel.app/api/og-image/${encodeURIComponent(slug)}`,
+          url: fallbackImage,
+          secureUrl: fallbackImage,
           width: 1200,
           height: 630,
           alt: 'Thumbnail Undangan',
@@ -37,7 +38,7 @@ export async function generateMetadata({
       },
       twitter: {
         card: 'summary_large_image',
-        images: [`https://v0-cetakfotodibali.vercel.app/api/og-image/${encodeURIComponent(slug)}`],
+        images: [fallbackImage],
       },
     }
   }

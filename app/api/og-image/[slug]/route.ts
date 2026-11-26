@@ -13,7 +13,7 @@ export const maxDuration = 30
 const OG_WIDTH = 1200
 const OG_HEIGHT = 630
 // Bump when the rendering pipeline changes so cached renders are regenerated.
-const RENDER_VERSION = 'v4'
+const RENDER_VERSION = 'v5'
 
 const missingOgImageResponse = () =>
   new NextResponse('No OG image configured for this wedding', {
@@ -106,7 +106,7 @@ const renderWithSharp = async (source: Buffer) => {
   ])
   return sharp(background)
     .composite([{ input: foreground, gravity: 'centre' }])
-    .jpeg({ quality: 82, mozjpeg: true, progressive: false })
+    .jpeg({ quality: 72, mozjpeg: true, progressive: false, chromaSubsampling: '4:2:0' })
     .toBuffer()
 }
 
@@ -156,7 +156,7 @@ const renderWithJpegJs = (source: Buffer) => {
       out[o + 3] = 255
     }
   }
-  return Buffer.from(jpeg.encode({ data: out, width: OG_WIDTH, height: OG_HEIGHT }, 82).data)
+  return Buffer.from(jpeg.encode({ data: out, width: OG_WIDTH, height: OG_HEIGHT }, 72).data)
 }
 
 const isJpeg = (buffer: Buffer) => buffer.length > 3 && buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff

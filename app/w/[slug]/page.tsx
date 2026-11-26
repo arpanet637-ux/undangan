@@ -30,12 +30,15 @@ const getOgImageUrl = (value?: string | null, origin = SITE_ORIGIN, slug?: strin
   // (`/api/file?pathname=...`). The OG route resolves and validates the source itself;
   // rejecting relative paths here previously dropped og:image for every direct upload.
   if (!candidate || !slug) return null
-  const imageUrl = new URL(`/api/og-image/${encodeURIComponent(slug)}`, `${origin}/`)
-  // Version the image URL by the configured source so WhatsApp re-fetches after the
-  // admin replaces the thumbnail. `r3` matches RENDER_VERSION in the OG route.
+  // Version the image by the configured source so WhatsApp re-fetches after the admin
+  // replaces the thumbnail. The version lives in the path (not `?v=`) and ends in `.jpg`
+  // because older WhatsApp clients can skip query-string image URLs. `r5` tracks
+  // RENDER_VERSION in the OG route.
   const sourceKey = Array.from(candidate).reduce((hash, char) => (hash * 31 + char.charCodeAt(0)) >>> 0, 7)
-  imageUrl.searchParams.set('v', `r4-${sourceKey.toString(36)}`)
-  return imageUrl.toString()
+  return new URL(
+    `/api/og-image/${encodeURIComponent(slug)}/r5-${sourceKey.toString(36)}.jpg`,
+    `${origin}/`,
+  ).toString()
 }
 
 export async function generateMetadata({
