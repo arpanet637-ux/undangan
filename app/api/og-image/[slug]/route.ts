@@ -13,7 +13,7 @@ export const maxDuration = 30
 const OG_WIDTH = 1200
 const OG_HEIGHT = 630
 // Bump when the rendering pipeline changes so cached renders are regenerated.
-const RENDER_VERSION = 'v6'
+const RENDER_VERSION = 'v7'
 
 const missingOgImageResponse = () =>
   new NextResponse('No OG image configured for this wedding', {
@@ -102,7 +102,10 @@ const renderWithSharp = async (source: Buffer) => {
   return sharp(source, { failOn: 'none' })
     .rotate()
     .resize(OG_WIDTH, OG_HEIGHT, { fit: 'cover', position: sharp.strategy.attention })
-    .jpeg({ quality: 60, mozjpeg: true, progressive: false, chromaSubsampling: '4:2:0' })
+    // Not `mozjpeg: true`: sharp turns that on with optimiseScans, which forces a
+    // progressive JPEG even when `progressive: false` is set. Older WhatsApp/iOS clients
+    // can fail to render progressive previews, so the output must stay baseline.
+    .jpeg({ quality: 55, progressive: false, optimiseCoding: true, chromaSubsampling: '4:2:0' })
     .toBuffer()
 }
 
