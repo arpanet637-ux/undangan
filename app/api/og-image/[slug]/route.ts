@@ -13,7 +13,7 @@ export const maxDuration = 30
 const OG_WIDTH = 1200
 const OG_HEIGHT = 630
 // Bump when the rendering pipeline changes so cached renders are regenerated.
-const RENDER_VERSION = 'v5'
+const RENDER_VERSION = 'v6'
 
 const missingOgImageResponse = () =>
   new NextResponse('No OG image configured for this wedding', {
@@ -93,20 +93,16 @@ const loadSourceImage = async (rawOgImage: string): Promise<Buffer> => {
 // WhatsApp only shows a large preview reliably for a ~1.91:1 JPEG of at least 300px
 // width and a few hundred KB at most. Sources vary wildly (150x150 postimg thumbnails,
 // 6000x4000 camera originals, portrait photos), so every source is normalized into a
-// 1200x630 JPEG: the full photo is centered over a blurred fill of itself, so nothing
-// gets cropped and the configured OG image is still the only image used.
+// 1200x630 JPEG that fills the whole frame. The crop follows the most salient region
+// (faces, skin tones, detail) so portrait photos keep the couple in frame.
 const renderWithSharp = async (source: Buffer) => {
   // Imported lazily: a top-level import that fails to load its native libvips binary
   // crashes the whole route with a 500 before any fallback can run.
   const { default: sharp } = await import('sharp')
-  const base = sharp(source, { failOn: 'none' }).rotate()
-  const [background, foreground] = await Promise.all([
-    base.clone().resize(OG_WIDTH, OG_HEIGHT, { fit: 'cover' }).blur(40).modulate({ brightness: 0.8 }).toBuffer(),
-    base.clone().resize(OG_WIDTH, OG_HEIGHT, { fit: 'inside' }).toBuffer(),
-  ])
-  return sharp(background)
-    .composite([{ input: foreground, gravity: 'centre' }])
-    .jpeg({ quality: 72, mozjpeg: true, progressive: false, chromaSubsampling: '4:2:0' })
+  return sharp(source, { failOn: 'none' })
+    .rotate()
+    .resize(OG_WIDTH, OG_HEIGHT, { fit: 'cover', position: sharp.strategy.attention })
+    .jpeg({ quality: 60, mozjpeg: true, progressive: false, chromaSubsampling: '4:2:0' })
     .toBuffer()
 }
 
